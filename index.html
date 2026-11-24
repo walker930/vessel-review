@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>冠脈狹窄核對</title>
+<style>
+:root{--bg:#fafafa;--fg:#1d1d1f;--mut:#6b6b70;--line:#d6d6db;--acc:#0b63c5;--warn:#b3261e;--ok:#1b7f3b;--card:#fff}
+@media (prefers-color-scheme: dark){:root{--bg:#161618;--fg:#ececf0;--mut:#a0a0a8;--line:#3a3a40;--acc:#6aa8ff;--warn:#ff8a80;--ok:#7ad38f;--card:#1f1f23}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,"Microsoft JhengHei",sans-serif}
+header{display:flex;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:17px;margin:0 12px 0 0}
+main{padding:12px 16px;max-width:1300px;margin:0 auto}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:5px 12px;cursor:pointer}
+button.primary{background:var(--acc);color:#fff;border-color:var(--acc)}
+button:disabled{opacity:.45;cursor:default}
+.card{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px}
+.mut{color:var(--mut)}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.imgwrap{position:relative;cursor:crosshair;user-select:none}
+.imgwrap img{display:block;width:100%;height:auto;border:1px solid var(--line)}
+.mark{position:absolute;top:0;bottom:0;width:2px;background:var(--warn);pointer-events:none}
+.mark span{position:absolute;top:-2px;left:4px;background:var(--warn);color:#fff;font-size:12px;padding:0 4px;border-radius:3px}
+.ruler{position:relative;height:22px;border-top:1px solid var(--mut);margin-top:2px;font-size:11px;color:var(--mut)}
+.ruler i{position:absolute;top:0;height:6px;border-left:1px solid var(--mut)}
+.ruler b{position:absolute;top:6px;transform:translateX(-50%);font-weight:400}
+.xs{display:flex;gap:6px;flex-wrap:wrap}
+.xs figure{margin:0;text-align:center;font-size:12px;color:var(--mut)}
+.xs img{width:96px;height:96px;object-fit:contain;border:1px solid var(--line);background:#000}
+table{border-collapse:collapse;width:100%}
+td,th{border-bottom:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:middle}
+.reveal{border-left:4px solid var(--acc)}
+.pill{display:inline-block;padding:0 8px;border-radius:10px;border:1px solid var(--line);font-size:12px}
+.done{color:var(--ok)}
+label{margin-right:12px}
+#drop{padding:40px;text-align:center;border:2px dashed var(--line);border-radius:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>冠脈狹窄核對</h1>
+  <span id="who" class="mut"></span>
+  <span id="prog" class="mut"></span>
+  <span style="flex:1"></span>
+  <button id="prev" disabled>← 上一條</button>
+  <select id="jump"></select>
+  <button id="next" disabled>下一條 →</button>
+  <button id="export" disabled>匯出 CSV</button>
+</header>
+<main>
+  <div id="drop" class="card">
+    <p><b>選擇資料夾</b>：內含 <code>manifest.json</code> 與各血管的圖檔。</p>
+    <input type="file" id="dir" webkitdirectory directory multiple>
+    <p class="mut">所有資料只在這台電腦的瀏覽器中讀取，不會上傳。作答自動暫存在瀏覽器，完成後請按「匯出 CSV」。</p>
+  </div>
+  <div id="app" hidden>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><b id="vid"></b> <span id="vname" class="pill"></span> <span class="mut" id="vlen"></span></div>
+        <div class="mut">在血管圖上點一下＝新增一個病灶位置；再填等級與類型。</div>
+      </div>
+    </div>
+    <div class="card">
+      <div id="cprs"></div>
+      <div class="xs" id="xs"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin:0 0 6px">第一步：盲讀</h3>
+      <table id="lesions"><thead><tr><th>#</th><th>位置（mm，自開口）</th><th>狹窄等級</th><th>斑塊類型</th><th></th></tr></thead><tbody></tbody></table>
+      <p>
+        <label>影像可判讀
+          <select id="quality"><option value="">—</option><option>可</option><option>勉強</option><option>不可</option></select></label>
+        <label>整條最嚴重等級
+          <select id="vmax"></select></label>
+        <label>信心
+          <select id="conf"><option value="">—</option><option>高</option><option>中</option><option>低</option></select></label>
+      </p>
+      <p><button id="toReveal" class="primary">完成盲讀，顯示報告</button></p>
+    </div>
+    <div class="card reveal" id="revealCard" hidden>
+      <h3 style="margin:0 0 6px">第二步：對照報告</h3>
+      <p id="reportTxt"></p>
+      <p>
+        <label>判定
+          <select id="verdict"><option value="">—</option><option>報告正確</option><option>醫師判讀正確</option><option>解析錯誤（報告寫對，程式讀錯）</option><option>兩者都不完全對</option><option>無法判定</option></select></label>
+        <label>最終等級
+          <select id="final"></select></label>
+      </p>
+      <p><textarea id="note" rows="2" style="width:100%" placeholder="備註（可空白）"></textarea></p>
+      <p><button id="save" class="primary">儲存並到下一條</button> <span id="saved" class="done"></span></p>
+    </div>
+  </div>
+</main>
+<script>
+const GRADES=['0 無','1 <25%','2 25–49%','3 50–69%','4 70–99%','5 閉塞'];
+const TYPES=['鈣化','非鈣化','混合','不確定'];
+let M=null, files={}, idx=0, ans={}, KEY='';
+const $=id=>document.getElementById(id);
+function opts(sel,arr,blank=true){sel.innerHTML=(blank?'<option value="">—</option>':'')+arr.map((g,i)=>`<option value="${i}">${g}</option>`).join('')}
+function store(){try{localStorage.setItem(KEY,JSON.stringify(ans))}catch(e){}}
+function load(){try{ans=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){ans={}}}
+function url(name){const f=files[name];return f?URL.createObjectURL(f):''}
+
+$('dir').addEventListener('change',async e=>{
+  files={}; for(const f of e.target.files){files[f.webkitRelativePath.split('/').slice(1).join('/')]=f}
+  if(!files['manifest.json']){alert('資料夾裡找不到 manifest.json');return}
+  M=JSON.parse(await files['manifest.json'].text());
+  KEY='vessel_review:'+(M.set_id||'set')+':'+(M.reader||'reader');
+  load(); $('drop').hidden=true; $('app').hidden=false;
+  ['prev','next','export'].forEach(b=>$(b).disabled=false);
+  $('who').textContent=(M.set_id||'')+(M.reader?' ／ 判讀者 '+M.reader:'');
+  $('jump').innerHTML=M.vessels.map((v,i)=>`<option value="${i}">${i+1}. ${v.id}</option>`).join('');
+  opts($('vmax'),GRADES); opts($('final'),GRADES);
+  const first=M.vessels.findIndex(v=>!(ans[v.id]&&ans[v.id].saved)); show(first<0?0:first);
+});
+
+function cur(){const v=M.vessels[idx];return ans[v.id]||(ans[v.id]={lesions:[],revealed:false})}
+
+function show(i){
+  idx=Math.max(0,Math.min(M.vessels.length-1,i)); const v=M.vessels[idx], a=cur();
+  $('jump').value=idx; $('vid').textContent=v.id; $('vname').textContent=v.vessel; $('vlen').textContent=`長度 ${v.length_mm} mm`;
+  const done=M.vessels.filter(x=>ans[x.id]&&ans[x.id].saved).length;
+  $('prog').textContent=`進度 ${done}/${M.vessels.length}`;
+  const c=$('cprs'); c.innerHTML='';
+  (v.cpr||[]).forEach(p=>{
+    const box=document.createElement('div'); box.style.marginBottom='10px';
+    box.innerHTML=`<div class="mut" style="font-size:12px">${p.label||''}</div>`;
+    const w=document.createElement('div'); w.className='imgwrap';
+    const img=document.createElement('img'); img.src=url(p.file); img.alt=p.label||'CPR'; w.appendChild(img);
+    w.addEventListener('click',ev=>{
+      if(a.revealed)return; const r=w.getBoundingClientRect(); const fx=(ev.clientX-r.left)/r.width;
+      const mm=Math.round(v.length_mm*Math.min(1,Math.max(0,fx))*10)/10; a.lesions.push({mm,grade:'',type:''}); store(); show(idx);
+    });
+    a.lesions.forEach((L,k)=>{const m=document.createElement('div');m.className='mark';m.style.left=(100*L.mm/v.length_mm)+'%';m.innerHTML=`<span>${k+1}</span>`;w.appendChild(m)});
+    box.appendChild(w);
+    const ru=document.createElement('div'); ru.className='ruler'; const step=v.length_mm>120?20:10;
+    for(let mm=0;mm<=v.length_mm;mm+=step){ru.innerHTML+=`<i style="left:${100*mm/v.length_mm}%"></i><b style="left:${100*mm/v.length_mm}%">${mm}</b>`}
+    box.appendChild(ru); c.appendChild(box);
+  });
+  $('xs').innerHTML=(v.cross||[]).map(x=>`<figure><img src="${url(x.file)}" alt="${x.mm} mm"><figcaption>${x.mm} mm</figcaption></figure>`).join('');
+  const tb=$('lesions').querySelector('tbody'); tb.innerHTML='';
+  a.lesions.forEach((L,k)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${k+1}</td><td>${L.mm}</td><td><select data-k="${k}" data-f="grade"></select></td><td><select data-k="${k}" data-f="type"></select></td><td><button data-del="${k}">刪除</button></td>`;
+    tb.appendChild(tr);
+    const g=tr.querySelector('[data-f=grade]'); opts(g,GRADES); g.value=L.grade;
+    const t=tr.querySelector('[data-f=type]'); t.innerHTML='<option value="">—</option>'+TYPES.map(x=>`<option>${x}</option>`).join(''); t.value=L.type;
+    tr.querySelectorAll('select').forEach(s=>{s.disabled=a.revealed;s.onchange=()=>{a.lesions[+s.dataset.k][s.dataset.f]=s.value;store()}});
+    tr.querySelector('[data-del]').disabled=a.revealed;
+    tr.querySelector('[data-del]').onclick=()=>{a.lesions.splice(k,1);store();show(idx)};
+  });
+  if(!a.lesions.length)tb.innerHTML='<tr><td colspan="5" class="mut">尚未標記。沒有狹窄也可以不標，直接填下方欄位。</td></tr>';
+  $('quality').value=a.quality||''; $('vmax').value=a.vmax??''; $('conf').value=a.conf||'';
+  ['quality','vmax','conf'].forEach(id=>{$(id).disabled=a.revealed;$(id).onchange=()=>{a[id]=$(id).value;store()}});
+  $('toReveal').disabled=a.revealed;
+  $('revealCard').hidden=!a.revealed;
+  if(a.revealed){
+    const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+    $('reportTxt').innerHTML=(v.report_text?`<div style="white-space:pre-wrap;border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:8px"><span class="mut">報告原文（與此血管相關的句子）</span><br>${esc(v.report_text)}</div>`:'')
+      +`解析結果：<b>${v.report_grade!=null?GRADES[v.report_grade]:'未提及'}</b>`+(v.report_segment?`，分段 <b>${esc(v.report_segment)}</b>`:'')+(v.report_note?`<br><span class="mut">${esc(v.report_note)}</span>`:'');
+    $('verdict').value=a.verdict||''; $('final').value=a.final??''; $('note').value=a.note||'';
+    $('saved').textContent=a.saved?'已儲存':'';
+  }
+}
+$('toReveal').onclick=()=>{const a=cur();
+  if(!a.quality||a.vmax===undefined||a.vmax===''){alert('請先填「影像可判讀」與「整條最嚴重等級」');return}
+  if(a.lesions.some(L=>L.grade===''||L.type==='')){alert('每個病灶都要填等級與類型');return}
+  a.revealed=true; a.reveal_time=new Date().toISOString(); store(); show(idx)};
+$('verdict').onchange=()=>{const a=cur(),v=M.vessels[idx];a.verdict=$('verdict').value;
+  if(a.verdict==='報告正確'&&v.report_grade!=null){a.final=String(v.report_grade);$('final').value=a.final}
+  else if(a.verdict==='醫師判讀正確'&&a.vmax!==''&&a.vmax!=null){a.final=String(a.vmax);$('final').value=a.final}
+  store()};
+$('final').onchange=()=>{cur().final=$('final').value;store()};
+$('note').oninput=()=>{cur().note=$('note').value;store()};
+$('save').onclick=()=>{const a=cur(); if(!a.verdict||a.final===''||a.final===undefined){alert('請填「判定」與「最終等級」');return}
+  a.saved=new Date().toISOString(); store(); show(idx+1)};
+$('prev').onclick=()=>show(idx-1); $('next').onclick=()=>show(idx+1); $('jump').onchange=e=>show(+e.target.value);
+$('export').onclick=()=>{
+  const rows=[['vessel_id','vessel','reader','quality','blind_max_grade','confidence','lesion_no','lesion_mm','lesion_grade','lesion_type','report_grade','report_segment','verdict','final_grade','note','reveal_time','saved']];
+  M.vessels.forEach(v=>{const a=ans[v.id]; if(!a)return; const Ls=a.lesions.length?a.lesions:[{}];
+    Ls.forEach((L,k)=>rows.push([v.id,v.vessel,M.reader||'',a.quality||'',a.vmax??'',a.conf||'',a.lesions.length?k+1:'',L.mm??'',L.grade??'',L.type??'',v.report_grade??'',v.report_segment||'',a.verdict||'',a.final??'',(a.note||'').replace(/\s+/g,' '),a.reveal_time||'',a.saved||'']))});
+  const csv='﻿'+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const b=new Blob([csv],{type:'text/csv'}); const l=document.createElement('a'); l.href=URL.createObjectURL(b);
+  l.download=`vessel_review_${M.set_id||'set'}_${M.reader||'reader'}_${new Date().toISOString().slice(0,10)}.csv`; l.click()};
+</script>
+</body>
+</html>
