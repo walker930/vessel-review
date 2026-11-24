@@ -85,6 +85,7 @@ label{margin-right:12px}
     </div>
     <div class="card">
       <div id="locBox"></div>
+      <div id="angBox" style="font-size:13px;margin-bottom:4px"></div>
       <div class="mut" id="legend" style="font-size:12px;margin-bottom:6px"></div>
       <div id="cprs"></div>
       <div class="xs" id="xs"></div>
@@ -121,7 +122,8 @@ label{margin-right:12px}
 <script>
 const GRADES=['0 無','1 <25%','2 25–49%','3 50–69%','4 70–99%','5 閉塞'];
 const TYPES=['鈣化斑塊','非鈣化斑塊','混合斑塊','心肌橋','支架內再狹窄','偽影（移動或鈣化暈染）','其他（請寫備註）','無法判斷'];
-let M=null, files={}, idx=0, ans={}, KEY='', READER='', MODE='blind';
+let M=null, files={}, idx=0, ans={}, KEY='', READER='', MODE='blind', VIEW='0,90';
+const VIEWS=[['0,90','0°／90°'],['45,135','45°／135°'],['all','全部角度']];
 const TEACH=()=>MODE==='teach';
 const locked=a=>!TEACH()&&a.revealed;          // blind answers freeze after the report is revealed
 const reportShown=a=>TEACH()||a.revealed;
@@ -197,8 +199,12 @@ function show(i){
   const showCa=reportShown(a)&&(v.calcium||[]).length;
   const RT=reportShown(a)?reportTerms(v):{rows:[],hl:new Set()};
   $('legend').innerHTML=((v.branches||[]).length?'藍色虛線＝分支開口（取自 ISP 標註）。':'')+((v.segments||[]).length?'下方灰框＝分段與開口處（依分支開口推算，無分支時依長度比例，僅供參考）。':'')+(RT.hl.size?'黃框＝報告提到的位置。':'')+(showCa?'橘色短條＝鈣化（>600 HU）。':'');
+  const angs=(v.cpr||[]).map(p=>p.angle).filter(x=>x!=null);
+  $('angBox').innerHTML=angs.length>2?'顯示角度：'+VIEWS.map(([k,t])=>`<label><input type="radio" name="view" value="${k}" ${VIEW===k?'checked':''}> ${t}</label>`).join(' '):'';
+  $('angBox').querySelectorAll('input').forEach(r=>r.onchange=()=>{VIEW=r.value;show(idx)});
+  const vis=p=>angs.length<=2||p.angle==null||VIEW==='all'||VIEW.split(',').includes(String(p.angle));
   const c=$('cprs'); c.innerHTML='';
-  (v.cpr||[]).forEach(p=>{
+  (v.cpr||[]).filter(vis).forEach(p=>{
     const box=document.createElement('div'); box.style.marginBottom='10px';
     box.innerHTML=`<div class="mut" style="font-size:12px">${p.label||''}</div>`;
     const w=document.createElement('div'); w.className='imgwrap';
