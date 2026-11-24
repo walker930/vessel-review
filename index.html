@@ -59,7 +59,7 @@ label{margin-right:12px}
     <div class="card">
       <div class="row" style="justify-content:space-between">
         <div><b id="vid"></b> <span id="vname" class="pill"></span> <span class="mut" id="vlen"></span></div>
-        <div class="mut">在血管圖上點一下＝新增一個病灶位置；再填等級與類型。</div>
+        <div class="mut">在血管圖上點一下＝新增一個病灶位置；再填等級與病灶性質（有斑塊但不狹窄填 0–1 級；不是斑塊造成的狹窄選心肌橋等）。</div>
       </div>
     </div>
     <div class="card">
@@ -68,7 +68,7 @@ label{margin-right:12px}
     </div>
     <div class="card">
       <h3 style="margin:0 0 6px">第一步：盲讀</h3>
-      <table id="lesions"><thead><tr><th>#</th><th>位置（mm，自開口）</th><th>狹窄等級</th><th>斑塊類型</th><th></th></tr></thead><tbody></tbody></table>
+      <table id="lesions"><thead><tr><th>#</th><th>位置（mm，自開口）</th><th>狹窄等級</th><th>病灶性質</th><th></th></tr></thead><tbody></tbody></table>
       <p>
         <label>影像可判讀
           <select id="quality"><option value="">—</option><option>可</option><option>勉強</option><option>不可</option></select></label>
@@ -95,7 +95,7 @@ label{margin-right:12px}
 </main>
 <script>
 const GRADES=['0 無','1 <25%','2 25–49%','3 50–69%','4 70–99%','5 閉塞'];
-const TYPES=['鈣化','非鈣化','混合','不確定'];
+const TYPES=['鈣化斑塊','非鈣化斑塊','混合斑塊','心肌橋','支架內再狹窄','偽影（移動或鈣化暈染）','其他（請寫備註）','無法判斷'];
 let M=null, files={}, idx=0, ans={}, KEY='';
 const $=id=>document.getElementById(id);
 function opts(sel,arr,blank=true){sel.innerHTML=(blank?'<option value="">—</option>':'')+arr.map((g,i)=>`<option value="${i}">${g}</option>`).join('')}
@@ -166,7 +166,7 @@ function show(i){
 }
 $('toReveal').onclick=()=>{const a=cur();
   if(!a.quality||a.vmax===undefined||a.vmax===''){alert('請先填「影像可判讀」與「整條最嚴重等級」');return}
-  if(a.lesions.some(L=>L.grade===''||L.type==='')){alert('每個病灶都要填等級與類型');return}
+  if(a.lesions.some(L=>L.grade===''||L.type==='')){alert('每個病灶都要填等級與病灶性質');return}
   a.revealed=true; a.reveal_time=new Date().toISOString(); store(); show(idx)};
 $('verdict').onchange=()=>{const a=cur(),v=M.vessels[idx];a.verdict=$('verdict').value;
   if(a.verdict==='報告正確'&&v.report_grade!=null){a.final=String(v.report_grade);$('final').value=a.final}
