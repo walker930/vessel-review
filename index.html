@@ -87,6 +87,7 @@ label{margin-right:12px}
     <div class="card">
       <div id="locBox"></div>
       <div id="angBox" style="font-size:13px;margin-bottom:4px"></div>
+      <div id="contourBox" style="font-size:13px;margin-bottom:4px"></div>
       <div class="mut" id="legend" style="font-size:12px;margin-bottom:6px"></div>
       <div id="cprs"></div>
       <div class="xs" id="xs"></div>
@@ -123,7 +124,7 @@ label{margin-right:12px}
 <script>
 const GRADES=['0 無','1 <25%','2 25–49%','3 50–69%','4 70–99%','5 閉塞'];
 const TYPES=['鈣化斑塊','非鈣化斑塊','混合斑塊','心肌橋','支架內再狹窄','偽影（移動或鈣化暈染）','其他（請寫備註）','無法判斷'];
-let M=null, files={}, idx=0, ans={}, KEY='', READER='', MODE='blind', VIEW='0,90';
+let M=null, files={}, idx=0, ans={}, KEY='', READER='', MODE='blind', VIEW='0,90', CONTOUR=false;
 const VIEWS=[['0,90','0°／90°'],['45,135','45°／135°'],['all','全部角度']];
 const TEACH=()=>MODE==='teach';
 const locked=a=>!TEACH()&&a.revealed;          // blind answers freeze after the report is revealed
@@ -238,7 +239,10 @@ function show(i){
     for(let mm=0;mm<=v.length_mm;mm+=step){ru.innerHTML+=`<i style="left:${100*mm/v.length_mm}%"></i><b style="left:${100*mm/v.length_mm}%">${mm}</b>`}
     box.appendChild(ru); c.appendChild(box);
   });
-  $('xs').innerHTML=(v.cross||[]).map(x=>`<figure><img src="${url(x.file)}" alt="${x.mm} mm"><figcaption>${x.mm} mm</figcaption></figure>`).join('');
+  const canContour=reportShown(a)&&(v.cross||[]).some(x=>x.file_contour);
+  $('contourBox').innerHTML=canContour?`<label><input type="checkbox" id="contourChk" ${CONTOUR?'checked':''}> 顯示自動管腔外框（綠線；程式自動估計，可能有誤，僅供參考）</label>`:'';
+  if(canContour)$('contourChk').onchange=e=>{CONTOUR=e.target.checked;show(idx)};
+  $('xs').innerHTML=(v.cross||[]).map(x=>`<figure><img src="${url(canContour&&CONTOUR&&x.file_contour?x.file_contour:x.file)}" alt="${x.mm} mm"><figcaption>${x.mm} mm</figcaption></figure>`).join('');
   const tb=$('lesions').querySelector('tbody'); tb.innerHTML='';
   a.lesions.forEach((L,k)=>{
     const tr=document.createElement('tr');
