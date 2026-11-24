@@ -1,0 +1,115 @@
+{
+ "set_id": "demo",
+ "reader": "test",
+ "vessels": [
+  {
+   "id": "DEMO-001",
+   "vessel": "LAD",
+   "length_mm": 140,
+   "cpr": [
+    {
+     "file": "D1_LAD_cpr0.png",
+     "label": "拉直血管 0°"
+    },
+    {
+     "file": "D1_LAD_cpr90.png",
+     "label": "拉直血管 90°"
+    }
+   ],
+   "cross": [
+    {
+     "file": "D1_LAD_x10.png",
+     "mm": 10
+    },
+    {
+     "file": "D1_LAD_x40.png",
+     "mm": 40
+    },
+    {
+     "file": "D1_LAD_x70.png",
+     "mm": 70
+    },
+    {
+     "file": "D1_LAD_x100.png",
+     "mm": 100
+    },
+    {
+     "file": "D1_LAD_x130.png",
+     "mm": 130
+    }
+   ],
+   "report_grade": 3,
+   "report_segment": "pLAD"
+  },
+  {
+   "id": "DEMO-002",
+   "vessel": "LCX",
+   "length_mm": 90,
+   "cpr": [
+    {
+     "file": "D2_LCX_cpr0.png",
+     "label": "拉直血管 0°"
+    },
+    {
+     "file": "D2_LCX_cpr90.png",
+     "label": "拉直血管 90°"
+    }
+   ],
+   "cross": [
+    {
+     "file": "D2_LCX_x10.png",
+     "mm": 10
+    },
+    {
+     "file": "D2_LCX_x40.png",
+     "mm": 40
+    },
+    {
+     "file": "D2_LCX_x70.png",
+     "mm": 70
+    }
+   ],
+   "report_grade": 0,
+   "report_segment": null
+  },
+  {
+   "id": "DEMO-003",
+   "vessel": "RCA",
+   "length_mm": 160,
+   "cpr": [
+    {
+     "file": "D3_RCA_cpr0.png",
+     "label": "拉直血管 0°"
+    },
+    {
+     "file": "D3_RCA_cpr90.png",
+     "label": "拉直血管 90°"
+    }
+   ],
+   "cross": [
+    {
+     "file": "D3_RCA_x10.png",
+     "mm": 10
+    },
+    {
+     "file": "D3_RCA_x40.png",
+     "mm": 40
+    },
+    {
+     "file": "D3_RCA_x70.png",
+     "mm": 70
+    },
+    {
+     "file": "D3_RCA_x100.png",
+     "mm": 100
+    },
+    {
+     "file": "D3_RCA_x130.png",
+     "mm": 130
+    }
+   ],
+   "report_grade": 4,
+   "report_segment": "mRCA"
+  }
+ ]
+}
