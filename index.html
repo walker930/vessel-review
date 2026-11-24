@@ -63,6 +63,7 @@ label{margin-right:12px}
   <button id="next" disabled>下一條 →</button>
   <button id="export" disabled>匯出 CSV</button>
   <button id="clearAll" disabled>清除我的全部作答</button>
+  <button id="switchMode" disabled>切換模式</button>
   <button id="switchReader" disabled>切換判讀者</button>
 </header>
 <main>
@@ -124,7 +125,7 @@ label{margin-right:12px}
 <script>
 const GRADES=['0 無','1 <25%','2 25–49%','3 50–69%','4 70–99%','5 閉塞'];
 const TYPES=['鈣化斑塊','非鈣化斑塊','混合斑塊','心肌橋','支架內再狹窄','偽影（移動或鈣化暈染）','其他（請寫備註）','無法判斷'];
-let M=null, files={}, idx=0, ans={}, KEY='', READER='', MODE='blind', VIEW='0,90', CONTOUR=false;
+let M=null, files={}, idx=0, ans={}, KEY='', READER='', MODE='blind', VIEW='0,90', CONTOUR='none';
 const VIEWS=[['0,90','0°／90°'],['45,135','45°／135°'],['all','全部角度']];
 const TEACH=()=>MODE==='teach';
 const locked=a=>!TEACH()&&a.revealed;          // blind answers freeze after the report is revealed
@@ -188,7 +189,8 @@ $('demoBtn').onclick=async()=>{  // demo files live next to the page (GitHub Pag
 function start(){
   KEY='vessel_review:'+MODE+':'+(M.set_id||'set')+':'+READER;
   load(); $('drop').hidden=true; $('app').hidden=false;
-  ['prev','next','export','clearAll','switchReader'].forEach(b=>$(b).disabled=false);
+  ['prev','next','export','clearAll','switchReader','switchMode'].forEach(b=>$(b).disabled=false);
+  $('switchMode').textContent=TEACH()?'切換到盲讀核對':'切換到教學標註';
   $('who').textContent=(M.set_id||'')+' ／ 判讀者 '+READER+' ／ '+(TEACH()?'教學標註':'盲讀核對');
   $('step1Title').textContent=TEACH()?'標註與說明（報告已顯示在下方）':'第一步：盲讀';
   $('step2Title').textContent=TEACH()?'報告與結論':'第二步：對照報告';
@@ -239,13 +241,13 @@ function show(i){
     for(let mm=0;mm<=v.length_mm;mm+=step){ru.innerHTML+=`<i style="left:${100*mm/v.length_mm}%"></i><b style="left:${100*mm/v.length_mm}%">${mm}</b>`}
     box.appendChild(ru); c.appendChild(box);
   });
-  const canContour=reportShown(a)&&(v.cross||[]).some(x=>x.file_contour);
-  $('contourBox').innerHTML=canContour?`<label><input type="checkbox" id="contourChk" ${CONTOUR?'checked':''}> 顯示自動輪廓（綠線＝管腔／內徑，黃線＝血管外壁／外徑，兩線之間＝斑塊；程式自動估計，可能有誤，僅供參考）</label>`:'';
-  if(canContour)$('contourChk').onchange=e=>{CONTOUR=e.target.checked;show(idx)};
-  const on=canContour&&CONTOUR;
-  $('xs').innerHTML=(v.cross||[]).map(x=>`<figure><img src="${url(on&&x.file_contour?x.file_contour:x.file)}" alt="${x.mm} mm"><figcaption>${x.mm} mm`
-    +(on&&(x.lumen_d!=null||x.outer_d!=null)?`<br><span title="等效直徑（由面積換算），自動估計；外徑受 CT 邊界模糊影響常偏大">內 ${x.lumen_d??'—'}／外 ${x.outer_d??'—'} mm</span>`:'')
-    +`</figcaption></figure>`).join('');
+  const hasISP=(v.cross||[]).some(x=>x.file_isp), hasNN=(v.cross||[]).some(x=>x.file_nn);
+  const canContour=reportShown(a)&&(hasISP||hasNN);
+  const COPTS=[['none','無'],...(hasISP?[['isp','ISP 標註遮罩（綠）']]:[]),...(hasNN?[['nn','nnU-Net 預測（藍）']]:[])];
+  $('contourBox').innerHTML=canContour?'橫切面輪廓：'+COPTS.map(([k,t])=>`<label><input type="radio" name="contour" value="${k}" ${CONTOUR===k?'checked':''}> ${t}</label>`).join(' ')+' <span class="mut">（冠脈遮罩的邊界；分支處會一併框到分支）</span>':'';
+  if(canContour)$('contourBox').querySelectorAll('input').forEach(r=>r.onchange=()=>{CONTOUR=r.value;show(idx)});
+  const pick=x=>!canContour?x.file:CONTOUR==='isp'&&x.file_isp?x.file_isp:CONTOUR==='nn'&&x.file_nn?x.file_nn:x.file;
+  $('xs').innerHTML=(v.cross||[]).map(x=>`<figure><img src="${url(pick(x))}" alt="${x.mm} mm"><figcaption>${x.mm} mm</figcaption></figure>`).join('');
   const tb=$('lesions').querySelector('tbody'); tb.innerHTML='';
   a.lesions.forEach((L,k)=>{
     const tr=document.createElement('tr');
@@ -294,6 +296,7 @@ $('redo').onclick=()=>{const v=M.vessels[idx],a=cur();
 $('clearAll').onclick=()=>{
   if(!confirm(`確定要清除判讀者 ${READER} 在這個資料夾的全部作答嗎？\n建議先按「匯出 CSV」備份。清除後無法復原。`))return;
   ans={}; store(); show(0)};
+$('switchMode').onclick=()=>{MODE=TEACH()?'blind':'teach'; start()};  // same data and reader; each mode keeps its own answers
 $('switchReader').onclick=()=>{ if(!confirm('切換判讀者？目前的作答已自動暫存，之後用同一代號可以接著做。'))return; location.reload()};
 $('prev').onclick=()=>show(idx-1); $('next').onclick=()=>show(idx+1); $('jump').onchange=e=>show(+e.target.value);
 $('export').onclick=()=>{
