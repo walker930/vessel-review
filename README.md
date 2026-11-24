@@ -11,6 +11,13 @@ A single-file, offline browser tool for reviewing coronary stenosis labels on st
 - Click a red marker number to delete it (before reveal in blinded mode).
 - `demo/` contains synthetic images (not patient data) for trying the interface.
 
+## Optional overlays (manifest fields)
+- `locator`: small frontal MIP image with the vessel drawn.
+- `branches` [{name, mm}]: branch take-offs, dashed blue lines.
+- `segments`, `ostia` [{name, from, to}]: estimated segment and ostium ranges, shown under the vessel. Segments named in the report text are highlighted once the report is shown.
+- `calcium` [[from, to]]: calcified ranges, shown once the report is shown.
+- A built-in glossary explains report terms (segment names, plaque types, stenosis grades) once the report is shown.
+
 ## manifest.json
 ```json
 {"set_id": "set1", "reader": "R1",

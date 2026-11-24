@@ -25,6 +25,19 @@ button:disabled{opacity:.45;cursor:default}
 .mark span{position:absolute;top:-2px;left:4px;background:var(--warn);color:#fff;font-size:12px;padding:0 4px;border-radius:3px;pointer-events:auto;cursor:pointer}
 .mark span:hover::after{content:' ✕'}
 .ruler{position:relative;height:22px;border-top:1px solid var(--mut);margin-top:2px;font-size:11px;color:var(--mut)}
+.br{position:absolute;top:0;bottom:0;border-left:1px dashed #3b82f6;pointer-events:none}
+.br span{position:absolute;bottom:2px;left:2px;font-size:11px;color:#fff;background:#3b82f6;padding:0 3px;border-radius:3px}
+.ca{position:absolute;top:0;height:8px;background:#f59e0b;pointer-events:none}
+.segs{position:relative;height:18px;margin-top:2px;font-size:11px}
+.segs div{position:absolute;top:0;height:16px;border:1px solid var(--line);text-align:center;overflow:hidden;color:var(--mut);background:var(--card);white-space:nowrap}
+.segs div.hl{background:#fde68a;color:#78350f;border-color:#f59e0b;font-weight:600}
+.terms{margin-top:8px;border-collapse:collapse;width:100%}
+.terms td{padding:3px 6px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+.loc{float:right;margin-left:12px;text-align:center;font-size:11px;color:var(--mut)}
+#cprs{clear:both}
+.segs div.ost{overflow:visible;border-color:#94a3b8;text-align:left;padding-left:2px}
+.loc img{width:180px;border:1px solid var(--line);background:#000;cursor:zoom-in}
+.loc img.big{width:420px}
 .ruler i{position:absolute;top:0;height:6px;border-left:1px solid var(--mut)}
 .ruler b{position:absolute;top:6px;transform:translateX(-50%);font-weight:400}
 .xs{display:flex;gap:6px;flex-wrap:wrap}
@@ -71,6 +84,8 @@ label{margin-right:12px}
       </div>
     </div>
     <div class="card">
+      <div id="locBox"></div>
+      <div class="mut" id="legend" style="font-size:12px;margin-bottom:6px"></div>
       <div id="cprs"></div>
       <div class="xs" id="xs"></div>
     </div>
@@ -111,6 +126,38 @@ const TEACH=()=>MODE==='teach';
 const locked=a=>!TEACH()&&a.revealed;          // blind answers freeze after the report is revealed
 const reportShown=a=>TEACH()||a.revealed;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+// Report vocabulary: regex -> [term, Chinese explanation, segment/ostium name on the image or null]
+const SEGRE=[
+ [/\bost(?:ial|ium)\s+(?:and\s+\w+\s+)?(?:of\s+(?:the\s+)?)?(LM|LAD|LCX|LCx|Cx|RCA)\b|\b(LM|LAD|LCX|LCx|Cx|RCA)\s+ost(?:ium|ial)\b/gi, m=>{const v=(m[1]||m[2]).toUpperCase().replace(/^L?CX$/,'LCX');return ['ostial '+v,`${v} 開口處（約開口起 5 mm 內）`,'ostial '+v]}],
+ [/\b([pmd])(LAD|Cx|LCx|LCX|RCA)\b/g, m=>{const P={p:'近段',m:'中段',d:'遠段'}[m[1]],V=m[2].toUpperCase().replace(/^L?CX$/,'LCX'),n=m[1]+(V==='LCX'?'Cx':V);return [m[0],`${V} ${P}`,n]}],
+ [/\b(proximal|middle|mid|distal)\s+(LAD|LCX|LCx|Cx|RCA)\b/gi, m=>{const k=m[1].toLowerCase()[0],P={p:'近段',m:'中段',d:'遠段'}[k],V=m[2].toUpperCase().replace(/^L?CX$/,'LCX');return [m[0],`${V} ${P}`,k+(V==='LCX'?'Cx':V)]}],
+ [/\b(D\d|OM\d|PDA|R-?PDA|PL[B]?|R-?PLB?|Ramus|RI|Septal\d?|M\d)\b/g, m=>{const n=m[1].toUpperCase().replace(/^R-?/,'').replace(/^M(\d)$/,'OM$1');const map={D:'對角支（LAD 的分支）',OM:'鈍緣支（LCX 的分支）',PDA:'後降支（多由 RCA 遠端分出）',PL:'後側支',PLB:'後側支',RAMUS:'中間支（LM 分出）',RI:'中間支（LM 分出）',SEPTAL:'中隔支（LAD 的分支）'};const k=Object.keys(map).find(x=>n.startsWith(x));return [m[0],(k?map[k]:'分支')+'；分支本身不在這張拉直主幹圖上，圖上只標開口（若有標註）',n]}],
+];
+const DESCR=[
+ [/non-?calcified\s+plaques?/i,'非鈣化斑塊','管壁上 CT 值較低的軟組織增厚（大約 30–150 HU），在圖上是貼著管腔、比管腔暗的灰色區域；不像鈣化那樣亮白。容易被漏判，也容易和管壁或偽影混淆。'],
+ [/partially[\s-]*calcified\s+plaques?|mixed\s+plaques?/i,'部分鈣化（混合）斑塊','同一個斑塊裡同時有灰色的軟組織和亮白的鈣化點。'],
+ [/(?<!non-?|partially[\s-]*)calcified\s+plaques?/i,'鈣化斑塊','亮白色（>130 HU，常 >400 HU）的團塊，貼在管壁上；會暈開（blooming），讓管腔看起來比實際更窄。'],
+ [/total\s+occlusion/i,'完全阻塞','管腔顯影中斷，一段沒有顯影劑。'],
+ [/recanaliz/i,'遠端再通','阻塞段之後的血管又有顯影（側枝或再通），不代表阻塞處通暢。'],
+ [/\bpatent\b/i,'通暢','沒有明顯狹窄或斑塊。'],
+ [/myocardial\s+bridg|intramyocardial/i,'心肌橋','血管有一段走在心肌裡，收縮期被壓扁，可能看起來像狹窄，但通常沒有斑塊。'],
+ [/\bstent/i,'支架','支架是很亮的金屬網格，會產生偽影，支架內管腔判讀較困難。'],
+ [/minimal\s*\(?\s*[<＜]\s*25/i,'1 級：輕微（<25%）',''],
+ [/mild\s*\(?\s*25/i,'2 級：輕度（25–49%）',''],
+ [/moderate\s*\(?\s*50/i,'3 級：中度（50–69%）',''],
+ [/severe\s*\(?\s*70/i,'4 級：重度（70–99%）',''],
+ [/diffuse|long\s+segment/i,'瀰漫性／長段病變','病變範圍長，不是單一點；在圖上請用「範圍」標出起訖。'],
+];
+function reportTerms(v){
+  const t=v.report_text||'', out=[], hl=new Set();
+  SEGRE.forEach(([re,f])=>{for(const m of t.matchAll(re)){const [term,ex,seg]=f(m);
+    const s=[...(v.segments||[]),...(v.ostia||[])].find(x=>x.name.toLowerCase()===String(seg).toLowerCase());
+    const b=(v.branches||[]).find(x=>x.name===seg);
+    if(s)hl.add(s.name);
+    out.push([term,ex+(s?`；圖上約 ${s.from}–${s.to} mm（推算）`:b?`；開口約在 ${b.mm} mm`:'')])}});
+  DESCR.forEach(([re,term,ex])=>{if(re.test(t))out.push([term,ex])});
+  const seen=new Set(); return {rows:out.filter(r=>{const k=r[0].toLowerCase();if(seen.has(k))return false;seen.add(k);return true}),hl};
+}
 const $=id=>document.getElementById(id);
 function opts(sel,arr,blank=true){sel.innerHTML=(blank?'<option value="">—</option>':'')+arr.map((g,i)=>`<option value="${i}">${g}</option>`).join('')}
 function store(){try{localStorage.setItem(KEY,JSON.stringify(ans))}catch(e){}}
@@ -146,6 +193,10 @@ function show(i){
   $('jump').value=idx; $('vid').textContent=v.id; $('vname').textContent=v.vessel; $('vlen').textContent=`長度 ${v.length_mm} mm`;
   const done=M.vessels.filter(x=>ans[x.id]&&ans[x.id].saved).length;
   $('prog').textContent=`進度 ${done}/${M.vessels.length}`;
+  $('locBox').innerHTML=v.locator?`<div class="loc"><img src="${url(v.locator)}" alt="定位圖" title="點一下放大／縮小" onclick="this.classList.toggle('big')"><br>定位圖：正面最大強度投影，紅線＝這條血管</div>`:'';
+  const showCa=reportShown(a)&&(v.calcium||[]).length;
+  const RT=reportShown(a)?reportTerms(v):{rows:[],hl:new Set()};
+  $('legend').innerHTML=((v.branches||[]).length?'藍色虛線＝分支開口（取自 ISP 標註）。':'')+((v.segments||[]).length?'下方灰框＝分段與開口處（依分支開口推算，無分支時依長度比例，僅供參考）。':'')+(RT.hl.size?'黃框＝報告提到的位置。':'')+(showCa?'橘色短條＝鈣化（>600 HU）。':'');
   const c=$('cprs'); c.innerHTML='';
   (v.cpr||[]).forEach(p=>{
     const box=document.createElement('div'); box.style.marginBottom='10px';
@@ -161,7 +212,12 @@ function show(i){
       const m=document.createElement('div');m.className='mark';m.style.left=(100*L.mm/v.length_mm)+'%';m.innerHTML=`<span title="${locked(a)?'':'點一下刪除這個病灶'}">${k+1}</span>`;
       m.querySelector('span').addEventListener('click',ev=>{ev.stopPropagation(); if(locked(a))return; a.lesions.splice(k,1); store(); show(idx)});
       w.appendChild(m)});
+    (v.branches||[]).forEach(b=>{const d=document.createElement('div');d.className='br';d.style.left=(100*b.mm/v.length_mm)+'%';d.innerHTML=`<span>${esc(b.name)}</span>`;w.appendChild(d)});
+    if(showCa)(v.calcium||[]).forEach(r=>{const d=document.createElement('div');d.className='ca';d.style.left=(100*r[0]/v.length_mm)+'%';d.style.width=Math.max(0.4,100*(r[1]-r[0])/v.length_mm)+'%';w.appendChild(d)});
     box.appendChild(w);
+    [v.segments||[],v.ostia||[]].forEach(list=>{ if(!list.length)return; const sg=document.createElement('div');sg.className='segs';
+      list.forEach(s=>{const d=document.createElement('div');d.style.left=(100*s.from/v.length_mm)+'%';d.style.width=(100*(s.to-s.from)/v.length_mm)+'%';d.textContent=s.name;d.title=`${s.name} ${s.from}–${s.to} mm（推算）`;d.className=(list===v.ostia?'ost ':'')+(RT.hl.has(s.name)?'hl':'');sg.appendChild(d)});
+      box.appendChild(sg)});
     const ru=document.createElement('div'); ru.className='ruler'; const step=v.length_mm>120?20:10;
     for(let mm=0;mm<=v.length_mm;mm+=step){ru.innerHTML+=`<i style="left:${100*mm/v.length_mm}%"></i><b style="left:${100*mm/v.length_mm}%">${mm}</b>`}
     box.appendChild(ru); c.appendChild(box);
@@ -191,7 +247,8 @@ function show(i){
   $('redoNote').hidden=!a.redo_count;
   if(reportShown(a)){
     $('reportTxt').innerHTML=(v.report_text?`<div style="white-space:pre-wrap;border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:8px"><span class="mut">報告原文（與此血管相關的句子）</span><br>${esc(v.report_text)}</div>`:'')
-      +`解析結果：<b>${v.report_grade!=null?GRADES[v.report_grade]:'未提及'}</b>`+(v.report_segment?`，分段 <b>${esc(v.report_segment)}</b>`:'')+(v.report_note?`<br><span class="mut">${esc(v.report_note)}</span>`:'');
+      +`解析結果：<b>${v.report_grade!=null?GRADES[v.report_grade]:'未提及'}</b>`+(v.report_segment?`，分段 <b>${esc(v.report_segment)}</b>`:'')+(v.report_note?`<br><span class="mut">${esc(v.report_note)}</span>`:'')
+      +(RT.rows.length?`<table class="terms"><tr><td colspan="2" class="mut">報告用語說明（位置為推算；提到的分段已在血管圖下方以黃色標出）</td></tr>`+RT.rows.map(r=>`<tr><td><b>${esc(r[0])}</b></td><td>${esc(r[1])}</td></tr>`).join('')+'</table>':'');
     $('verdict').value=a.verdict||''; $('final').value=a.final??''; $('note').value=a.note||'';
     $('saved').textContent=a.saved?'已儲存':'';
   }
