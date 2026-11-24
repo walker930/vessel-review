@@ -1,6 +1,6 @@
 {
  "set_id": "demo",
- "reader": "test",
+ "reader": "",
  "vessels": [
   {
    "id": "DEMO-001",
@@ -9,37 +9,141 @@
    "cpr": [
     {
      "file": "D1_LAD_cpr0.png",
-     "label": "拉直血管 0°"
+     "angle": 0,
+     "label": "拉直血管 0°（合成示範）"
+    },
+    {
+     "file": "D1_LAD_cpr45.png",
+     "angle": 45,
+     "label": "拉直血管 45°（合成示範）"
     },
     {
      "file": "D1_LAD_cpr90.png",
-     "label": "拉直血管 90°"
+     "angle": 90,
+     "label": "拉直血管 90°（合成示範）"
+    },
+    {
+     "file": "D1_LAD_cpr135.png",
+     "angle": 135,
+     "label": "拉直血管 135°（合成示範）"
     }
    ],
    "cross": [
     {
-     "file": "D1_LAD_x10.png",
-     "mm": 10
+     "file": "D1_LAD_x5.png",
+     "mm": 5
     },
     {
-     "file": "D1_LAD_x40.png",
-     "mm": 40
+     "file": "D1_LAD_x15.png",
+     "mm": 15
     },
     {
-     "file": "D1_LAD_x70.png",
-     "mm": 70
+     "file": "D1_LAD_x25.png",
+     "mm": 25
     },
     {
-     "file": "D1_LAD_x100.png",
-     "mm": 100
+     "file": "D1_LAD_x35.png",
+     "mm": 35
     },
     {
-     "file": "D1_LAD_x130.png",
-     "mm": 130
+     "file": "D1_LAD_x45.png",
+     "mm": 45
+    },
+    {
+     "file": "D1_LAD_x55.png",
+     "mm": 55
+    },
+    {
+     "file": "D1_LAD_x65.png",
+     "mm": 65
+    },
+    {
+     "file": "D1_LAD_x75.png",
+     "mm": 75
+    },
+    {
+     "file": "D1_LAD_x85.png",
+     "mm": 85
+    },
+    {
+     "file": "D1_LAD_x95.png",
+     "mm": 95
+    },
+    {
+     "file": "D1_LAD_x105.png",
+     "mm": 105
+    },
+    {
+     "file": "D1_LAD_x115.png",
+     "mm": 115
+    },
+    {
+     "file": "D1_LAD_x125.png",
+     "mm": 125
+    },
+    {
+     "file": "D1_LAD_x135.png",
+     "mm": 135
     }
    ],
+   "locator": "D1_LAD_locator.png",
+   "branches": [
+    {
+     "name": "D1",
+     "mm": 42.0
+    },
+    {
+     "name": "D2",
+     "mm": 88.0
+    }
+   ],
+   "segments": [
+    {
+     "name": "LM",
+     "from": 0,
+     "to": 10.0
+    },
+    {
+     "name": "pLAD",
+     "from": 10.0,
+     "to": 42.0
+    },
+    {
+     "name": "mLAD",
+     "from": 42.0,
+     "to": 88.0
+    },
+    {
+     "name": "dLAD",
+     "from": 88.0,
+     "to": 140
+    }
+   ],
+   "ostia": [
+    {
+     "name": "ostial LM",
+     "from": 0,
+     "to": 3.0
+    },
+    {
+     "name": "ostial LAD",
+     "from": 10.0,
+     "to": 15.0
+    }
+   ],
+   "calcium": [
+    [
+     56.8,
+     59.2
+    ],
+    [
+     72.2,
+     74.8
+    ]
+   ],
    "report_grade": 3,
-   "report_segment": "pLAD"
+   "report_segment": null,
+   "report_text": "Moderate (50%-69%) stenosis in pLAD with partially calcified plaques. Minimal stenosis in mLAD with calcified plaque. [synthetic demo text]"
   },
   {
    "id": "DEMO-002",
@@ -48,29 +152,117 @@
    "cpr": [
     {
      "file": "D2_LCX_cpr0.png",
-     "label": "拉直血管 0°"
+     "angle": 0,
+     "label": "拉直血管 0°（合成示範）"
+    },
+    {
+     "file": "D2_LCX_cpr45.png",
+     "angle": 45,
+     "label": "拉直血管 45°（合成示範）"
     },
     {
      "file": "D2_LCX_cpr90.png",
-     "label": "拉直血管 90°"
+     "angle": 90,
+     "label": "拉直血管 90°（合成示範）"
+    },
+    {
+     "file": "D2_LCX_cpr135.png",
+     "angle": 135,
+     "label": "拉直血管 135°（合成示範）"
     }
    ],
    "cross": [
     {
-     "file": "D2_LCX_x10.png",
-     "mm": 10
+     "file": "D2_LCX_x5.png",
+     "mm": 5
     },
     {
-     "file": "D2_LCX_x40.png",
-     "mm": 40
+     "file": "D2_LCX_x15.png",
+     "mm": 15
     },
     {
-     "file": "D2_LCX_x70.png",
-     "mm": 70
+     "file": "D2_LCX_x25.png",
+     "mm": 25
+    },
+    {
+     "file": "D2_LCX_x35.png",
+     "mm": 35
+    },
+    {
+     "file": "D2_LCX_x45.png",
+     "mm": 45
+    },
+    {
+     "file": "D2_LCX_x55.png",
+     "mm": 55
+    },
+    {
+     "file": "D2_LCX_x65.png",
+     "mm": 65
+    },
+    {
+     "file": "D2_LCX_x75.png",
+     "mm": 75
+    },
+    {
+     "file": "D2_LCX_x85.png",
+     "mm": 85
     }
    ],
+   "locator": "D2_LCX_locator.png",
+   "branches": [
+    {
+     "name": "OM1",
+     "mm": 48.0
+    }
+   ],
+   "segments": [
+    {
+     "name": "LM",
+     "from": 0,
+     "to": 10.0
+    },
+    {
+     "name": "pCx",
+     "from": 10.0,
+     "to": 48.0
+    },
+    {
+     "name": "mCx",
+     "from": 48.0,
+     "to": 69.0
+    },
+    {
+     "name": "dCx",
+     "from": 69.0,
+     "to": 90
+    }
+   ],
+   "ostia": [
+    {
+     "name": "ostial LM",
+     "from": 0,
+     "to": 3.0
+    },
+    {
+     "name": "ostial LCX",
+     "from": 10.0,
+     "to": 15.0
+    }
+   ],
+   "calcium": [
+    [
+     46.0,
+     48.5
+    ],
+    [
+     66.2,
+     68.8
+    ]
+   ],
    "report_grade": 0,
-   "report_segment": null
+   "report_segment": null,
+   "report_text": "Patent. [synthetic demo text]"
   },
   {
    "id": "DEMO-003",
@@ -79,37 +271,130 @@
    "cpr": [
     {
      "file": "D3_RCA_cpr0.png",
-     "label": "拉直血管 0°"
+     "angle": 0,
+     "label": "拉直血管 0°（合成示範）"
+    },
+    {
+     "file": "D3_RCA_cpr45.png",
+     "angle": 45,
+     "label": "拉直血管 45°（合成示範）"
     },
     {
      "file": "D3_RCA_cpr90.png",
-     "label": "拉直血管 90°"
+     "angle": 90,
+     "label": "拉直血管 90°（合成示範）"
+    },
+    {
+     "file": "D3_RCA_cpr135.png",
+     "angle": 135,
+     "label": "拉直血管 135°（合成示範）"
     }
    ],
    "cross": [
     {
-     "file": "D3_RCA_x10.png",
-     "mm": 10
+     "file": "D3_RCA_x5.png",
+     "mm": 5
     },
     {
-     "file": "D3_RCA_x40.png",
-     "mm": 40
+     "file": "D3_RCA_x15.png",
+     "mm": 15
     },
     {
-     "file": "D3_RCA_x70.png",
-     "mm": 70
+     "file": "D3_RCA_x25.png",
+     "mm": 25
     },
     {
-     "file": "D3_RCA_x100.png",
-     "mm": 100
+     "file": "D3_RCA_x35.png",
+     "mm": 35
     },
     {
-     "file": "D3_RCA_x130.png",
-     "mm": 130
+     "file": "D3_RCA_x45.png",
+     "mm": 45
+    },
+    {
+     "file": "D3_RCA_x55.png",
+     "mm": 55
+    },
+    {
+     "file": "D3_RCA_x65.png",
+     "mm": 65
+    },
+    {
+     "file": "D3_RCA_x75.png",
+     "mm": 75
+    },
+    {
+     "file": "D3_RCA_x85.png",
+     "mm": 85
+    },
+    {
+     "file": "D3_RCA_x95.png",
+     "mm": 95
+    },
+    {
+     "file": "D3_RCA_x105.png",
+     "mm": 105
+    },
+    {
+     "file": "D3_RCA_x115.png",
+     "mm": 115
+    },
+    {
+     "file": "D3_RCA_x125.png",
+     "mm": 125
+    },
+    {
+     "file": "D3_RCA_x135.png",
+     "mm": 135
+    },
+    {
+     "file": "D3_RCA_x145.png",
+     "mm": 145
+    },
+    {
+     "file": "D3_RCA_x155.png",
+     "mm": 155
     }
    ],
+   "locator": "D3_RCA_locator.png",
+   "branches": [],
+   "segments": [
+    {
+     "name": "pRCA",
+     "from": 0,
+     "to": 53.3
+    },
+    {
+     "name": "mRCA",
+     "from": 53.3,
+     "to": 106.7
+    },
+    {
+     "name": "dRCA",
+     "from": 106.7,
+     "to": 160
+    }
+   ],
+   "ostia": [
+    {
+     "name": "ostial RCA",
+     "from": 0.0,
+     "to": 5.0
+    }
+   ],
+   "calcium": [
+    [
+     32.8,
+     35.2
+    ],
+    [
+     94.0,
+     96.5
+    ]
+   ],
    "report_grade": 4,
-   "report_segment": "mRCA"
+   "report_segment": null,
+   "report_text": "Severe (70%-99%) stenosis in mRCA with noncalcified plaque. [synthetic demo text]"
   }
  ]
 }
