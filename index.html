@@ -240,9 +240,12 @@ function show(i){
     box.appendChild(ru); c.appendChild(box);
   });
   const canContour=reportShown(a)&&(v.cross||[]).some(x=>x.file_contour);
-  $('contourBox').innerHTML=canContour?`<label><input type="checkbox" id="contourChk" ${CONTOUR?'checked':''}> 顯示自動管腔外框（綠線；程式自動估計，可能有誤，僅供參考）</label>`:'';
+  $('contourBox').innerHTML=canContour?`<label><input type="checkbox" id="contourChk" ${CONTOUR?'checked':''}> 顯示自動輪廓（綠線＝管腔／內徑，黃線＝血管外壁／外徑，兩線之間＝斑塊；程式自動估計，可能有誤，僅供參考）</label>`:'';
   if(canContour)$('contourChk').onchange=e=>{CONTOUR=e.target.checked;show(idx)};
-  $('xs').innerHTML=(v.cross||[]).map(x=>`<figure><img src="${url(canContour&&CONTOUR&&x.file_contour?x.file_contour:x.file)}" alt="${x.mm} mm"><figcaption>${x.mm} mm</figcaption></figure>`).join('');
+  const on=canContour&&CONTOUR;
+  $('xs').innerHTML=(v.cross||[]).map(x=>`<figure><img src="${url(on&&x.file_contour?x.file_contour:x.file)}" alt="${x.mm} mm"><figcaption>${x.mm} mm`
+    +(on&&(x.lumen_d!=null||x.outer_d!=null)?`<br><span title="等效直徑（由面積換算），自動估計；外徑受 CT 邊界模糊影響常偏大">內 ${x.lumen_d??'—'}／外 ${x.outer_d??'—'} mm</span>`:'')
+    +`</figcaption></figure>`).join('');
   const tb=$('lesions').querySelector('tbody'); tb.innerHTML='';
   a.lesions.forEach((L,k)=>{
     const tr=document.createElement('tr');
