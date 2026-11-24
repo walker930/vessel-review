@@ -31,59 +31,87 @@
    "cross": [
     {
      "file": "D1_LAD_x5.png",
-     "mm": 5
+     "mm": 5,
+     "file_isp": "D1_LAD_x5_isp.png",
+     "file_nn": "D1_LAD_x5_nn.png"
     },
     {
      "file": "D1_LAD_x15.png",
-     "mm": 15
+     "mm": 15,
+     "file_isp": "D1_LAD_x15_isp.png",
+     "file_nn": "D1_LAD_x15_nn.png"
     },
     {
      "file": "D1_LAD_x25.png",
-     "mm": 25
+     "mm": 25,
+     "file_isp": "D1_LAD_x25_isp.png",
+     "file_nn": "D1_LAD_x25_nn.png"
     },
     {
      "file": "D1_LAD_x35.png",
-     "mm": 35
+     "mm": 35,
+     "file_isp": "D1_LAD_x35_isp.png",
+     "file_nn": "D1_LAD_x35_nn.png"
     },
     {
      "file": "D1_LAD_x45.png",
-     "mm": 45
+     "mm": 45,
+     "file_isp": "D1_LAD_x45_isp.png",
+     "file_nn": "D1_LAD_x45_nn.png"
     },
     {
      "file": "D1_LAD_x55.png",
-     "mm": 55
+     "mm": 55,
+     "file_isp": "D1_LAD_x55_isp.png",
+     "file_nn": "D1_LAD_x55_nn.png"
     },
     {
      "file": "D1_LAD_x65.png",
-     "mm": 65
+     "mm": 65,
+     "file_isp": "D1_LAD_x65_isp.png",
+     "file_nn": "D1_LAD_x65_nn.png"
     },
     {
      "file": "D1_LAD_x75.png",
-     "mm": 75
+     "mm": 75,
+     "file_isp": "D1_LAD_x75_isp.png",
+     "file_nn": "D1_LAD_x75_nn.png"
     },
     {
      "file": "D1_LAD_x85.png",
-     "mm": 85
+     "mm": 85,
+     "file_isp": "D1_LAD_x85_isp.png",
+     "file_nn": "D1_LAD_x85_nn.png"
     },
     {
      "file": "D1_LAD_x95.png",
-     "mm": 95
+     "mm": 95,
+     "file_isp": "D1_LAD_x95_isp.png",
+     "file_nn": "D1_LAD_x95_nn.png"
     },
     {
      "file": "D1_LAD_x105.png",
-     "mm": 105
+     "mm": 105,
+     "file_isp": "D1_LAD_x105_isp.png",
+     "file_nn": "D1_LAD_x105_nn.png"
     },
     {
      "file": "D1_LAD_x115.png",
-     "mm": 115
+     "mm": 115,
+     "file_isp": "D1_LAD_x115_isp.png",
+     "file_nn": "D1_LAD_x115_nn.png"
     },
     {
      "file": "D1_LAD_x125.png",
-     "mm": 125
+     "mm": 125,
+     "file_isp": "D1_LAD_x125_isp.png",
+     "file_nn": "D1_LAD_x125_nn.png"
     },
     {
      "file": "D1_LAD_x135.png",
-     "mm": 135
+     "mm": 135,
+     "file_isp": "D1_LAD_x135_isp.png",
+     "file_nn": "D1_LAD_x135_nn.png"
     }
    ],
    "locator": "D1_LAD_locator.png",
@@ -174,39 +202,57 @@
    "cross": [
     {
      "file": "D2_LCX_x5.png",
-     "mm": 5
+     "mm": 5,
+     "file_isp": "D2_LCX_x5_isp.png",
+     "file_nn": "D2_LCX_x5_nn.png"
     },
     {
      "file": "D2_LCX_x15.png",
-     "mm": 15
+     "mm": 15,
+     "file_isp": "D2_LCX_x15_isp.png",
+     "file_nn": "D2_LCX_x15_nn.png"
     },
     {
      "file": "D2_LCX_x25.png",
-     "mm": 25
+     "mm": 25,
+     "file_isp": "D2_LCX_x25_isp.png",
+     "file_nn": "D2_LCX_x25_nn.png"
     },
     {
      "file": "D2_LCX_x35.png",
-     "mm": 35
+     "mm": 35,
+     "file_isp": "D2_LCX_x35_isp.png",
+     "file_nn": "D2_LCX_x35_nn.png"
     },
     {
      "file": "D2_LCX_x45.png",
-     "mm": 45
+     "mm": 45,
+     "file_isp": "D2_LCX_x45_isp.png",
+     "file_nn": "D2_LCX_x45_nn.png"
     },
     {
      "file": "D2_LCX_x55.png",
-     "mm": 55
+     "mm": 55,
+     "file_isp": "D2_LCX_x55_isp.png",
+     "file_nn": "D2_LCX_x55_nn.png"
     },
     {
      "file": "D2_LCX_x65.png",
-     "mm": 65
+     "mm": 65,
+     "file_isp": "D2_LCX_x65_isp.png",
+     "file_nn": "D2_LCX_x65_nn.png"
     },
     {
      "file": "D2_LCX_x75.png",
-     "mm": 75
+     "mm": 75,
+     "file_isp": "D2_LCX_x75_isp.png",
+     "file_nn": "D2_LCX_x75_nn.png"
     },
     {
      "file": "D2_LCX_x85.png",
-     "mm": 85
+     "mm": 85,
+     "file_isp": "D2_LCX_x85_isp.png",
+     "file_nn": "D2_LCX_x85_nn.png"
     }
    ],
    "locator": "D2_LCX_locator.png",
@@ -293,67 +339,99 @@
    "cross": [
     {
      "file": "D3_RCA_x5.png",
-     "mm": 5
+     "mm": 5,
+     "file_isp": "D3_RCA_x5_isp.png",
+     "file_nn": "D3_RCA_x5_nn.png"
     },
     {
      "file": "D3_RCA_x15.png",
-     "mm": 15
+     "mm": 15,
+     "file_isp": "D3_RCA_x15_isp.png",
+     "file_nn": "D3_RCA_x15_nn.png"
     },
     {
      "file": "D3_RCA_x25.png",
-     "mm": 25
+     "mm": 25,
+     "file_isp": "D3_RCA_x25_isp.png",
+     "file_nn": "D3_RCA_x25_nn.png"
     },
     {
      "file": "D3_RCA_x35.png",
-     "mm": 35
+     "mm": 35,
+     "file_isp": "D3_RCA_x35_isp.png",
+     "file_nn": "D3_RCA_x35_nn.png"
     },
     {
      "file": "D3_RCA_x45.png",
-     "mm": 45
+     "mm": 45,
+     "file_isp": "D3_RCA_x45_isp.png",
+     "file_nn": "D3_RCA_x45_nn.png"
     },
     {
      "file": "D3_RCA_x55.png",
-     "mm": 55
+     "mm": 55,
+     "file_isp": "D3_RCA_x55_isp.png",
+     "file_nn": "D3_RCA_x55_nn.png"
     },
     {
      "file": "D3_RCA_x65.png",
-     "mm": 65
+     "mm": 65,
+     "file_isp": "D3_RCA_x65_isp.png",
+     "file_nn": "D3_RCA_x65_nn.png"
     },
     {
      "file": "D3_RCA_x75.png",
-     "mm": 75
+     "mm": 75,
+     "file_isp": "D3_RCA_x75_isp.png",
+     "file_nn": "D3_RCA_x75_nn.png"
     },
     {
      "file": "D3_RCA_x85.png",
-     "mm": 85
+     "mm": 85,
+     "file_isp": "D3_RCA_x85_isp.png",
+     "file_nn": "D3_RCA_x85_nn.png"
     },
     {
      "file": "D3_RCA_x95.png",
-     "mm": 95
+     "mm": 95,
+     "file_isp": "D3_RCA_x95_isp.png",
+     "file_nn": "D3_RCA_x95_nn.png"
     },
     {
      "file": "D3_RCA_x105.png",
-     "mm": 105
+     "mm": 105,
+     "file_isp": "D3_RCA_x105_isp.png",
+     "file_nn": "D3_RCA_x105_nn.png"
     },
     {
      "file": "D3_RCA_x115.png",
-     "mm": 115
+     "mm": 115,
+     "file_isp": "D3_RCA_x115_isp.png",
+     "file_nn": "D3_RCA_x115_nn.png"
     },
     {
      "file": "D3_RCA_x125.png",
-     "mm": 125
+     "mm": 125,
+     "file_isp": "D3_RCA_x125_isp.png",
+     "file_nn": "D3_RCA_x125_nn.png"
     },
     {
      "file": "D3_RCA_x135.png",
-     "mm": 135
+     "mm": 135,
+     "file_isp": "D3_RCA_x135_isp.png",
+     "file_nn": "D3_RCA_x135_nn.png"
     },
     {
      "file": "D3_RCA_x145.png",
-     "mm": 145
+     "mm": 145,
+     "file_isp": "D3_RCA_x145_isp.png",
+     "file_nn": "D3_RCA_x145_nn.png"
     },
     {
      "file": "D3_RCA_x155.png",
-     "mm": 155
+     "mm": 155,
+     "file_isp": "D3_RCA_x155_isp.png",
+     "file_nn": "D3_RCA_x155_nn.png"
     }
    ],
    "locator": "D3_RCA_locator.png",
