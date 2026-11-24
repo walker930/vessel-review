@@ -22,7 +22,8 @@ button:disabled{opacity:.45;cursor:default}
 .imgwrap{position:relative;cursor:crosshair;user-select:none}
 .imgwrap img{display:block;width:100%;height:auto;border:1px solid var(--line)}
 .mark{position:absolute;top:0;bottom:0;width:2px;background:var(--warn);pointer-events:none}
-.mark span{position:absolute;top:-2px;left:4px;background:var(--warn);color:#fff;font-size:12px;padding:0 4px;border-radius:3px}
+.mark span{position:absolute;top:-2px;left:4px;background:var(--warn);color:#fff;font-size:12px;padding:0 4px;border-radius:3px;pointer-events:auto;cursor:pointer}
+.mark span:hover::after{content:' ✕'}
 .ruler{position:relative;height:22px;border-top:1px solid var(--mut);margin-top:2px;font-size:11px;color:var(--mut)}
 .ruler i{position:absolute;top:0;height:6px;border-left:1px solid var(--mut)}
 .ruler b{position:absolute;top:6px;transform:translateX(-50%);font-weight:400}
@@ -48,11 +49,18 @@ label{margin-right:12px}
   <select id="jump"></select>
   <button id="next" disabled>下一條 →</button>
   <button id="export" disabled>匯出 CSV</button>
+  <button id="clearAll" disabled>清除我的全部作答</button>
+  <button id="switchReader" disabled>切換判讀者</button>
 </header>
 <main>
   <div id="drop" class="card">
     <p><b>選擇資料夾</b>：內含 <code>manifest.json</code> 與各血管的圖檔。</p>
-    <input type="file" id="dir" webkitdirectory directory multiple>
+    <p><b>模式</b>
+      <label><input type="radio" name="mode" value="blind" checked> 盲讀核對（先判讀，再看報告；用於估計標籤正確率）</label>
+      <label><input type="radio" name="mode" value="teach"> 教學標註（直接看報告，在圖上標出問題並寫說明；用於建立知識）</label></p>
+    <p><label>判讀者代號（必填，例如 R1）<input id="readerIn" size="10" autocomplete="off"></label></p>
+    <input type="file" id="dir" webkitdirectory directory multiple disabled>
+    <p class="mut">每位判讀者的作答分開暫存，彼此看不到；同一台電腦換人時，請輸入不同代號。</p>
     <p class="mut">所有資料只在這台電腦的瀏覽器中讀取，不會上傳。作答自動暫存在瀏覽器，完成後請按「匯出 CSV」。</p>
   </div>
   <div id="app" hidden>
@@ -67,8 +75,8 @@ label{margin-right:12px}
       <div class="xs" id="xs"></div>
     </div>
     <div class="card">
-      <h3 style="margin:0 0 6px">第一步：盲讀</h3>
-      <table id="lesions"><thead><tr><th>#</th><th>位置（mm，自開口）</th><th>狹窄等級</th><th>病灶性質</th><th></th></tr></thead><tbody></tbody></table>
+      <h3 style="margin:0 0 6px" id="step1Title">第一步：盲讀</h3>
+      <table id="lesions"><thead><tr id="lesHead"></tr></thead><tbody></tbody></table>
       <p>
         <label>影像可判讀
           <select id="quality"><option value="">—</option><option>可</option><option>勉強</option><option>不可</option></select></label>
@@ -80,7 +88,7 @@ label{margin-right:12px}
       <p><button id="toReveal" class="primary">完成盲讀，顯示報告</button></p>
     </div>
     <div class="card reveal" id="revealCard" hidden>
-      <h3 style="margin:0 0 6px">第二步：對照報告</h3>
+      <h3 style="margin:0 0 6px" id="step2Title">第二步：對照報告</h3>
       <p id="reportTxt"></p>
       <p>
         <label>判定
@@ -89,32 +97,47 @@ label{margin-right:12px}
           <select id="final"></select></label>
       </p>
       <p><textarea id="note" rows="2" style="width:100%" placeholder="備註（可空白）"></textarea></p>
-      <p><button id="save" class="primary">儲存並到下一條</button> <span id="saved" class="done"></span></p>
+      <p><button id="save" class="primary">儲存並到下一條</button> <span id="saved" class="done"></span>
+        <span style="float:right"><button id="redo">重做這條</button></span></p>
+      <p class="mut" id="redoNote" hidden>這條曾重做：已看過報告，重做的盲讀結果在分析時會分開處理。</p>
     </div>
   </div>
 </main>
 <script>
 const GRADES=['0 無','1 <25%','2 25–49%','3 50–69%','4 70–99%','5 閉塞'];
 const TYPES=['鈣化斑塊','非鈣化斑塊','混合斑塊','心肌橋','支架內再狹窄','偽影（移動或鈣化暈染）','其他（請寫備註）','無法判斷'];
-let M=null, files={}, idx=0, ans={}, KEY='';
+let M=null, files={}, idx=0, ans={}, KEY='', READER='', MODE='blind';
+const TEACH=()=>MODE==='teach';
+const locked=a=>!TEACH()&&a.revealed;          // blind answers freeze after the report is revealed
+const reportShown=a=>TEACH()||a.revealed;
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $=id=>document.getElementById(id);
 function opts(sel,arr,blank=true){sel.innerHTML=(blank?'<option value="">—</option>':'')+arr.map((g,i)=>`<option value="${i}">${g}</option>`).join('')}
 function store(){try{localStorage.setItem(KEY,JSON.stringify(ans))}catch(e){}}
 function load(){try{ans=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){ans={}}}
 function url(name){const f=files[name];return f?URL.createObjectURL(f):''}
 
+$('readerIn').addEventListener('input',()=>{$('dir').disabled=!/^[A-Za-z0-9_-]{1,20}$/.test($('readerIn').value.trim())});
 $('dir').addEventListener('change',async e=>{
+  READER=$('readerIn').value.trim(); if(!READER){alert('請先輸入判讀者代號');return}
+  MODE=document.querySelector('input[name=mode]:checked').value;
   files={}; for(const f of e.target.files){files[f.webkitRelativePath.split('/').slice(1).join('/')]=f}
   if(!files['manifest.json']){alert('資料夾裡找不到 manifest.json');return}
-  M=JSON.parse(await files['manifest.json'].text());
-  KEY='vessel_review:'+(M.set_id||'set')+':'+(M.reader||'reader');
+  M=JSON.parse(await files['manifest.json'].text()); start();
+});
+function start(){
+  KEY='vessel_review:'+MODE+':'+(M.set_id||'set')+':'+READER;
   load(); $('drop').hidden=true; $('app').hidden=false;
-  ['prev','next','export'].forEach(b=>$(b).disabled=false);
-  $('who').textContent=(M.set_id||'')+(M.reader?' ／ 判讀者 '+M.reader:'');
+  ['prev','next','export','clearAll','switchReader'].forEach(b=>$(b).disabled=false);
+  $('who').textContent=(M.set_id||'')+' ／ 判讀者 '+READER+' ／ '+(TEACH()?'教學標註':'盲讀核對');
+  $('step1Title').textContent=TEACH()?'標註與說明（報告已顯示在下方）':'第一步：盲讀';
+  $('step2Title').textContent=TEACH()?'報告與結論':'第二步：對照報告';
+  $('toReveal').hidden=TEACH(); $('redo').hidden=TEACH();
+  $('lesHead').innerHTML='<th>#</th><th>位置（mm，自開口）</th>'+(TEACH()?'<th>範圍終點（mm，可空白）</th>':'')+'<th>狹窄等級</th><th>病灶性質</th>'+(TEACH()?'<th>說明（圖上的問題是什麼、為什麼）</th>':'')+'<th></th>';
   $('jump').innerHTML=M.vessels.map((v,i)=>`<option value="${i}">${i+1}. ${v.id}</option>`).join('');
   opts($('vmax'),GRADES); opts($('final'),GRADES);
   const first=M.vessels.findIndex(v=>!(ans[v.id]&&ans[v.id].saved)); show(first<0?0:first);
-});
+}
 
 function cur(){const v=M.vessels[idx];return ans[v.id]||(ans[v.id]={lesions:[],revealed:false})}
 
@@ -130,10 +153,14 @@ function show(i){
     const w=document.createElement('div'); w.className='imgwrap';
     const img=document.createElement('img'); img.src=url(p.file); img.alt=p.label||'CPR'; w.appendChild(img);
     w.addEventListener('click',ev=>{
-      if(a.revealed)return; const r=w.getBoundingClientRect(); const fx=(ev.clientX-r.left)/r.width;
-      const mm=Math.round(v.length_mm*Math.min(1,Math.max(0,fx))*10)/10; a.lesions.push({mm,grade:'',type:''}); store(); show(idx);
+      if(locked(a))return; const r=w.getBoundingClientRect(); const fx=(ev.clientX-r.left)/r.width;
+      const mm=Math.round(v.length_mm*Math.min(1,Math.max(0,fx))*10)/10; a.lesions.push({mm,grade:'',type:'',end_mm:'',explain:''}); store(); show(idx);
     });
-    a.lesions.forEach((L,k)=>{const m=document.createElement('div');m.className='mark';m.style.left=(100*L.mm/v.length_mm)+'%';m.innerHTML=`<span>${k+1}</span>`;w.appendChild(m)});
+    a.lesions.forEach((L,k)=>{
+      const e=parseFloat(L.end_mm); if(TEACH()&&e>L.mm){const s=document.createElement('div');s.style.cssText=`position:absolute;top:0;bottom:0;left:${100*L.mm/v.length_mm}%;width:${100*(Math.min(e,v.length_mm)-L.mm)/v.length_mm}%;background:rgba(179,38,30,.18);pointer-events:none`;w.appendChild(s)}
+      const m=document.createElement('div');m.className='mark';m.style.left=(100*L.mm/v.length_mm)+'%';m.innerHTML=`<span title="${locked(a)?'':'點一下刪除這個病灶'}">${k+1}</span>`;
+      m.querySelector('span').addEventListener('click',ev=>{ev.stopPropagation(); if(locked(a))return; a.lesions.splice(k,1); store(); show(idx)});
+      w.appendChild(m)});
     box.appendChild(w);
     const ru=document.createElement('div'); ru.className='ruler'; const step=v.length_mm>120?20:10;
     for(let mm=0;mm<=v.length_mm;mm+=step){ru.innerHTML+=`<i style="left:${100*mm/v.length_mm}%"></i><b style="left:${100*mm/v.length_mm}%">${mm}</b>`}
@@ -143,21 +170,26 @@ function show(i){
   const tb=$('lesions').querySelector('tbody'); tb.innerHTML='';
   a.lesions.forEach((L,k)=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${k+1}</td><td>${L.mm}</td><td><select data-k="${k}" data-f="grade"></select></td><td><select data-k="${k}" data-f="type"></select></td><td><button data-del="${k}">刪除</button></td>`;
+    tr.innerHTML=`<td>${k+1}</td><td>${L.mm}</td>`+(TEACH()?`<td><input data-k="${k}" data-f="end_mm" size="6" value="${esc(L.end_mm)}"></td>`:'')
+      +`<td><select data-k="${k}" data-f="grade"></select></td><td><select data-k="${k}" data-f="type"></select></td>`
+      +(TEACH()?`<td><textarea data-k="${k}" data-f="explain" rows="2" style="width:100%;min-width:260px">${esc(L.explain)}</textarea></td>`:'')
+      +`<td><button data-del="${k}">刪除</button></td>`;
     tb.appendChild(tr);
     const g=tr.querySelector('[data-f=grade]'); opts(g,GRADES); g.value=L.grade;
     const t=tr.querySelector('[data-f=type]'); t.innerHTML='<option value="">—</option>'+TYPES.map(x=>`<option>${x}</option>`).join(''); t.value=L.type;
-    tr.querySelectorAll('select').forEach(s=>{s.disabled=a.revealed;s.onchange=()=>{a.lesions[+s.dataset.k][s.dataset.f]=s.value;store()}});
-    tr.querySelector('[data-del]').disabled=a.revealed;
+    tr.querySelectorAll('select,input,textarea').forEach(s=>{s.disabled=locked(a);
+      const upd=()=>{a.lesions[+s.dataset.k][s.dataset.f]=s.value;store()};
+      if(s.tagName==='SELECT')s.onchange=upd; else {s.oninput=upd; if(s.dataset.f==='end_mm')s.onchange=()=>{upd();show(idx)}}});
+    tr.querySelector('[data-del]').disabled=locked(a);
     tr.querySelector('[data-del]').onclick=()=>{a.lesions.splice(k,1);store();show(idx)};
   });
-  if(!a.lesions.length)tb.innerHTML='<tr><td colspan="5" class="mut">尚未標記。沒有狹窄也可以不標，直接填下方欄位。</td></tr>';
+  if(!a.lesions.length)tb.innerHTML=`<tr><td colspan="${TEACH()?7:5}" class="mut">尚未標記。在血管圖上點一下新增；沒有狹窄也可以不標。</td></tr>`;
   $('quality').value=a.quality||''; $('vmax').value=a.vmax??''; $('conf').value=a.conf||'';
-  ['quality','vmax','conf'].forEach(id=>{$(id).disabled=a.revealed;$(id).onchange=()=>{a[id]=$(id).value;store()}});
+  ['quality','vmax','conf'].forEach(id=>{$(id).disabled=locked(a);$(id).onchange=()=>{a[id]=$(id).value;store()}});
   $('toReveal').disabled=a.revealed;
-  $('revealCard').hidden=!a.revealed;
-  if(a.revealed){
-    const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  $('revealCard').hidden=!reportShown(a);
+  $('redoNote').hidden=!a.redo_count;
+  if(reportShown(a)){
     $('reportTxt').innerHTML=(v.report_text?`<div style="white-space:pre-wrap;border:1px solid var(--line);border-radius:6px;padding:8px;margin-bottom:8px"><span class="mut">報告原文（與此血管相關的句子）</span><br>${esc(v.report_text)}</div>`:'')
       +`解析結果：<b>${v.report_grade!=null?GRADES[v.report_grade]:'未提及'}</b>`+(v.report_segment?`，分段 <b>${esc(v.report_segment)}</b>`:'')+(v.report_note?`<br><span class="mut">${esc(v.report_note)}</span>`:'');
     $('verdict').value=a.verdict||''; $('final').value=a.final??''; $('note').value=a.note||'';
@@ -174,16 +206,23 @@ $('verdict').onchange=()=>{const a=cur(),v=M.vessels[idx];a.verdict=$('verdict')
   store()};
 $('final').onchange=()=>{cur().final=$('final').value;store()};
 $('note').oninput=()=>{cur().note=$('note').value;store()};
-$('save').onclick=()=>{const a=cur(); if(!a.verdict||a.final===''||a.final===undefined){alert('請填「判定」與「最終等級」');return}
+$('save').onclick=()=>{const a=cur(); if(!TEACH()&&(!a.verdict||a.final===''||a.final===undefined)){alert('請填「判定」與「最終等級」');return}
   a.saved=new Date().toISOString(); store(); show(idx+1)};
+$('redo').onclick=()=>{const v=M.vessels[idx],a=cur();
+  if(!confirm(`確定要清掉 ${v.id} 的作答重做嗎？\n你已看過報告，重做的結果會標記為「重做」。`))return;
+  ans[v.id]={lesions:[],revealed:false,redo_count:(a.redo_count||0)+1}; store(); show(idx)};
+$('clearAll').onclick=()=>{
+  if(!confirm(`確定要清除判讀者 ${READER} 在這個資料夾的全部作答嗎？\n建議先按「匯出 CSV」備份。清除後無法復原。`))return;
+  ans={}; store(); show(0)};
+$('switchReader').onclick=()=>{ if(!confirm('切換判讀者？目前的作答已自動暫存，之後用同一代號可以接著做。'))return; location.reload()};
 $('prev').onclick=()=>show(idx-1); $('next').onclick=()=>show(idx+1); $('jump').onchange=e=>show(+e.target.value);
 $('export').onclick=()=>{
-  const rows=[['vessel_id','vessel','reader','quality','blind_max_grade','confidence','lesion_no','lesion_mm','lesion_grade','lesion_type','report_grade','report_segment','verdict','final_grade','note','reveal_time','saved']];
+  const rows=[['vessel_id','vessel','reader','mode','quality','reader_max_grade','confidence','lesion_no','lesion_mm','lesion_end_mm','lesion_grade','lesion_nature','lesion_explain','report_grade','report_segment','verdict','final_grade','note','reveal_time','saved','redo_count']];
   M.vessels.forEach(v=>{const a=ans[v.id]; if(!a)return; const Ls=a.lesions.length?a.lesions:[{}];
-    Ls.forEach((L,k)=>rows.push([v.id,v.vessel,M.reader||'',a.quality||'',a.vmax??'',a.conf||'',a.lesions.length?k+1:'',L.mm??'',L.grade??'',L.type??'',v.report_grade??'',v.report_segment||'',a.verdict||'',a.final??'',(a.note||'').replace(/\s+/g,' '),a.reveal_time||'',a.saved||'']))});
+    Ls.forEach((L,k)=>rows.push([v.id,v.vessel,READER,MODE,a.quality||'',a.vmax??'',a.conf||'',a.lesions.length?k+1:'',L.mm??'',L.end_mm??'',L.grade??'',L.type??'',(L.explain||'').replace(/\s+/g,' '),v.report_grade??'',v.report_segment||'',a.verdict||'',a.final??'',(a.note||'').replace(/\s+/g,' '),a.reveal_time||'',a.saved||'',a.redo_count||0]))});
   const csv='﻿'+rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
   const b=new Blob([csv],{type:'text/csv'}); const l=document.createElement('a'); l.href=URL.createObjectURL(b);
-  l.download=`vessel_review_${M.set_id||'set'}_${M.reader||'reader'}_${new Date().toISOString().slice(0,10)}.csv`; l.click()};
+  l.download=`vessel_review_${MODE}_${M.set_id||'set'}_${READER}_${new Date().toISOString().slice(0,10)}.csv`; l.click()};
 </script>
 </body>
 </html>
